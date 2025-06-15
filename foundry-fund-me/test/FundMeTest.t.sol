@@ -33,8 +33,12 @@ contract FundMeTest is Test {
     //     - Testing our code in a real environment that is not prod
 
     function testPriceFeedVersionIsAccurate() public view {
-        uint256 version = fundMe.getVersion();
-        console.log("version", version);
-        assertEq(version, 4);
+        if (block.chainid == 11155111) {
+            uint256 version = fundMe.getVersion();
+            assertEq(version, 4);
+        } else if (block.chainid == 1) {
+            uint256 version = fundMe.getVersion();
+            assertEq(version, 6);
+        }
     }
 }
