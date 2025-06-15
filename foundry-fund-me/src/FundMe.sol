@@ -32,15 +32,13 @@ contract FundMe {
 
     address public immutable i_owner;
 
-    constructor() {
+    constructor(address priceFeed) {
         i_owner = msg.sender;
+        s_priceFeed = AggregatorV3Interface(priceFeed);
     }
 
     function getVersion() public view returns (uint256) {
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(
-            0x694AA1769357215DE4FAC081bf1f309aDC325306
-        );
-        return priceFeed.version();
+        return s_priceFeed.version();
     }
 
     // payable 붙은 함수나 주소만 이더를 전송 받을 수 있다.
@@ -51,7 +49,7 @@ contract FundMe {
         // 전역 변수 msg, msg.value 로 전송된 이더 금액을 확인할 수 있
         // require(getConversionRate(msg.value) >= MINIMUM_USD, "didn't send enough ETH"); // 1e18 = 1 ETH = 1,000,000,000,000,000,000 = 1 * 10 ** 18
         require(
-            msg.value.getConversionRate() >= MINIMUM_USD,
+            msg.value.getConversionRate(s_priceFeed) >= MINIMUM_USD,
             "didn't send enough ETH"
         ); // 1e18 = 1 ETH = 1,000,000,000,000,000,000 = 1 * 10 ** 18
 
