@@ -9,6 +9,7 @@
 pragma solidity ^0.8.24;
 
 import {PriceConverter} from "./PriceConverter.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
 error FundMe__NotOwner();
 
@@ -20,6 +21,8 @@ error FundMe__NotOwner();
 // 729,164
 contract FundMe {
     using PriceConverter for uint256;
+    AggregatorV3Interface private s_priceFeed;
+    address[] private s_funders;
 
     uint256 public constant MINIMUM_USD = 50 * 1e18;
 
@@ -31,6 +34,13 @@ contract FundMe {
 
     constructor() {
         i_owner = msg.sender;
+    }
+
+    function getVersion() public view returns (uint256) {
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(
+            0x694AA1769357215DE4FAC081bf1f309aDC325306
+        );
+        return priceFeed.version();
     }
 
     // payable 붙은 함수나 주소만 이더를 전송 받을 수 있다.
@@ -56,7 +66,7 @@ contract FundMe {
         addressToAmountedFunded[msg.sender] += msg.value;
     }
 
-    function widthraw() public onlyOwner {
+    function withdraw() public onlyOwner {
         // for loop
         // for(/* starting index, ending index, step amount */)
         for (
