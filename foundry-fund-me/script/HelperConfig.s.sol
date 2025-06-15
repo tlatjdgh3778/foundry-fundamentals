@@ -7,6 +7,7 @@
 pragma solidity ^0.8.30;
 
 import {Script} from "forge-std/Script.sol";
+import {MockV3Aggregator} from "../test/mocks/MockV3Aggregator.sol";
 
 contract HelperConfig is Script {
     // If we are on a local anvil, we deploy mocks
@@ -44,10 +45,18 @@ contract HelperConfig is Script {
         return ethConfig;
     }
 
-    function getAnvilEthConfig() public pure returns (NetworkConfig memory) {
+    function getAnvilEthConfig() public returns (NetworkConfig memory) {
         // price feed address
+        // 1. Deploy the mocks
+        // 2. Return the mock address
+
+        vm.startBroadcast();
+
+        MockV3Aggregator mockPriceFeed = new MockV3Aggregator(8, 2000e8);
+        vm.stopBroadcast();
+
         NetworkConfig memory anvilConfig = NetworkConfig({
-            priceFeed: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+            priceFeed: address(mockPriceFeed)
         });
         return anvilConfig;
     }
