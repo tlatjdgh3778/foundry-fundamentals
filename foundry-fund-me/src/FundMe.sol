@@ -22,13 +22,11 @@ error FundMe__NotOwner();
 contract FundMe {
     using PriceConverter for uint256;
     AggregatorV3Interface private s_priceFeed;
-    address[] private s_funders;
 
     uint256 public constant MINIMUM_USD = 50 * 1e18;
 
-    address[] public funders;
-    mapping(address funder => uint256 amountFunded)
-        public addressToAmountedFunded;
+    address[] private s_funders;
+    mapping(address => uint256) private s_addressToAmountedFunded;
 
     address public immutable i_owner;
 
@@ -60,8 +58,8 @@ contract FundMe {
         // What is revert ?
         // Undo any actions that have been done, and send the remaining gas back
         // 지금까지 실행된 작업들을 되돌리고, 남은 가스를 사용자에게 반환함
-        funders.push(msg.sender);
-        addressToAmountedFunded[msg.sender] += msg.value;
+        s_funders.push(msg.sender);
+        s_addressToAmountedFunded[msg.sender] += msg.value;
     }
 
     function withdraw() public onlyOwner {
@@ -69,15 +67,15 @@ contract FundMe {
         // for(/* starting index, ending index, step amount */)
         for (
             uint256 funderIndex = 0;
-            funderIndex < funders.length;
+            funderIndex < s_funders.length;
             funderIndex++
         ) {
-            address funder = funders[funderIndex];
-            addressToAmountedFunded[funder] = 0;
+            address funder = s_funders[funderIndex];
+            s_addressToAmountedFunded[funder] = 0;
         }
 
         // reset the array
-        funders = new address[](0);
+        s_funders = new address[](0);
 
         // withdraw the funds
 
@@ -115,6 +113,23 @@ contract FundMe {
 
     fallback() external payable {
         fund();
+    }
+
+    /**
+     * view / pure functions
+     */
+    function getAddressToAmountFunded(
+        address fundingAddress
+    ) external view returns (uint256) {
+        return s_addressToAmountedFunded[fundingAddress];
+    }
+
+    function getFunder(uint256 index) external view returns (address) {
+        return s_funders[index];
+    }
+
+    function getFunderCount() public view returns (uint256) {
+        return s_funders.length;
     }
 }
 
