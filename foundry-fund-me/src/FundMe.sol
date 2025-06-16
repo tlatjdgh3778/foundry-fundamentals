@@ -21,14 +21,13 @@ error FundMe__NotOwner();
 // 729,164
 contract FundMe {
     using PriceConverter for uint256;
-    AggregatorV3Interface private s_priceFeed;
 
-    uint256 public constant MINIMUM_USD = 50 * 1e18;
-
-    address[] private s_funders;
     mapping(address => uint256) private s_addressToAmountedFunded;
+    address[] private s_funders;
 
     address public immutable i_owner;
+    uint256 public constant MINIMUM_USD = 50 * 1e18;
+    AggregatorV3Interface private s_priceFeed;
 
     constructor(address priceFeed) {
         i_owner = msg.sender;
@@ -130,6 +129,10 @@ contract FundMe {
 
     function getFunderCount() public view returns (uint256) {
         return s_funders.length;
+    }
+
+    function getOwner() public view returns (address) {
+        return i_owner;
     }
 }
 
