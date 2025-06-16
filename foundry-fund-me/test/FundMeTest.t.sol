@@ -140,4 +140,33 @@ contract FundMeTest is Test {
             fundMe.getOwner().balance
         );
     }
+
+    // 여러 명의 펀더가 출금할 수 있는지 테스트
+    function testWithdrawFromMultipleFundersCheaper() public funded {
+        // Arrange
+        uint160 numberOfFunders = 10; // 10명의 펀더
+        uint160 startingFunderIndex = 1; // 2번째 펀더부터 시작
+        for (uint160 i = startingFunderIndex; i < numberOfFunders; i++) {
+            // vm.prank new address
+            // vm.deal new address
+            // => hoax
+            hoax(address(i), SEND_VALUE); // 10명의 펀더에게 0.1 ETH 보낸다.
+            fundMe.fund{value: SEND_VALUE}(); // 0.1 ETH
+        }
+
+        // Act
+        uint256 startingOwnerBalance = fundMe.getOwner().balance;
+        uint256 startingFundMeBalance = address(fundMe).balance;
+
+        vm.startPrank(fundMe.getOwner()); // 트랜잭션을 소유자로 보낸다.
+        fundMe.cheaperWithdraw(); // 출금을 시도한다.
+        vm.stopPrank(); // 트랜잭션을 소유자로 보내는 것을 멈춘다.
+
+        // Assert
+        assertEq(address(fundMe).balance, 0);
+        assertEq(
+            startingFundMeBalance + startingOwnerBalance,
+            fundMe.getOwner().balance
+        );
+    }
 }
