@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, console} from "forge-std/Test.sol";
 import {FundMe} from "../src/FundMe.sol";
 import {DeployFundMe} from "../script/DeployFundMe.s.sol";
 
@@ -10,6 +10,7 @@ contract FundMeTest is Test {
     address USER = makeAddr("user");
     uint256 constant SEND_VALUE = 0.1 ether; // 0.1 ETH = 100000000000000000 wei
     uint256 constant STARTING_BALANCE = 10 ether;
+    uint256 constant GAS_PRICE = 1;
 
     // 항상 setUp 함수가 실행된 후에 실행된다.
     function setUp() external {
@@ -91,8 +92,14 @@ contract FundMeTest is Test {
         uint256 startingFundMeBalance = address(fundMe).balance; // 컨트랙트의 잔액
 
         // Act      : 실행 단계 (테스트하고자 하는 실제 동작을 수행)
-        vm.prank(fundMe.getOwner()); // 트랜잭션을 소유자로 보낸다.
+        uint256 gasStart = gasleft(); // 가스 사용량을 측정한다. 1000
+        vm.txGasPrice(GAS_PRICE); // 가스 가격을 1로 설정한다.
+        vm.prank(fundMe.getOwner()); // 트랜잭션을 소유자로 보낸다. 200
         fundMe.withdraw(); // 출금을 시도한다.
+
+        uint256 gasEnd = gasleft(); // 가스 사용량을 측정한다. 800
+        uint256 gasUsed = (gasStart - gasEnd) * tx.gasprice; // 가스 사용량을 계산한다. 200 * 1 = 200
+        console.log(gasUsed);
 
         // Assert   : 검증 단계 (결과가 예상대로인지 확인)
         uint256 endingOwnerBalance = fundMe.getOwner().balance; // 소유자의 잔액
